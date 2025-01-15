@@ -14,19 +14,20 @@ import subprocess
 from db import Database
 
 
-bot = Bot('7934741203:AAHFESqtDITl5uXL3iLxztRCAomofQoW16Y')
+bot = Bot('YOUR BOT TOKEN')
 dp = Dispatcher(bot)
-proxy_host = '178.207.13.88'
-proxy_port = '1080'
+proxy_host = 'TEST PROXY HOST'
+proxy_port = 'TEST PROXY PORT'
 db = Database('database.db')
 
 BOT_NICKNAME = 'pump_vpn_bot'
 cost = ''
-WALLET = ''
+WALLET = 'YOUR CRYPTO WALLET'
 NETWORK = ''
 user_count = ''
-GROUP_CHAT_ID = -1002192140565
+GROUP_CHAT_ID = 'YOUR GROUP ID'
 sum = ''
+
 
 # YOUR HOSTS
 free_hosts = {
@@ -134,6 +135,7 @@ other_hosts = {
     },
 }
 
+# РАСЧЕТ ПОДПИСКИ
 def days_to_seconds(days):
     return days * 24 * 60 * 60
 
@@ -149,6 +151,7 @@ def time_sub_day(get_time):
         return dt
 
 
+# ПОДСЧЕТ РУБЛЕЙ В ДОЛЛАРЫ
 def calculate_sum_from_rubs_to_dollars(num):
     return round(num / 90.00, 2)
 
@@ -195,12 +198,6 @@ async def start(message: Message):
                     """
                     Можно добавить бонус на 10 дней доступа 
                     """
-                    # if db.get_sub_status(referrer_id):
-                    #     time_sub = int(time.time() + days_to_seconds(10)) - int(time.time())
-                    #     db.set_time_sub(referrer_id, time_sub)
-                    # else:
-                    #     time_sub = int(time.time() + days_to_seconds(10))
-                    #     db.set_time_sub(referrer_id, time_sub)
                 except:
                     pass
             else:
@@ -216,6 +213,7 @@ async def start(message: Message):
                 f'🌎 <b>Пользуйся всеми серверами и без переподключения при оплате доступа!</b>',
                 reply_markup=payment_keyboard1, parse_mode='html')
 
+# ЗАПРОС НА СУММУ ПОПОЛНЕНИЯ КОШЕЛЬКА
 @dp.message_handler(content_types=['text'])
 async def loot_for_wallet(message: Message):
     global cost, user_count, sum
@@ -229,7 +227,7 @@ async def loot_for_wallet(message: Message):
 
 
 
-
+# ОБРАБАТЫВАЕМ ХЭШИ И ПЕРЕСЫЛАЕМ СООБЩЕНИЯ В НАШУ ГРУППУ
 @dp.message_handler(regexp='^0x[a-fA-F0-9]{64}$', content_types=['photo'])
 async def handle_transaction_eth(message: Message):
     global succes_or_invalid, user_count
@@ -285,6 +283,7 @@ async def handle_transaction_ton(message: Message):
 @dp.callback_query_handler(lambda query: True)
 async def handle_callback(callback_query: CallbackQuery):
     global WALLET, NETWORK, sum
+    # ПРОВЕРКА ОПЛАТЫ
     try:
         action, user_id = callback_query.data.split(':')
         user_id = int(user_id)
@@ -308,7 +307,7 @@ async def handle_callback(callback_query: CallbackQuery):
     print(get_ms())
     print(regions)
 
-
+    # ВЫБОР СЕРВЕРА
     if data == 'connect_to_vpn':
         server_keyboard = InlineKeyboardMarkup(row_width=3)
         if db.get_sub_status(callback_query.from_user.id):
@@ -325,7 +324,7 @@ async def handle_callback(callback_query: CallbackQuery):
                 f'{callback_query.from_user.first_name}, выбери сервер для подключения:', reply_markup=server_keyboard)
 
 
-
+    # ПРОВЕРКА ПОДКЛЮЧЕНИЯ
     if data in all_regions:
         if db.get_sub_status(callback_query.from_user.id):
             try:
@@ -366,7 +365,7 @@ async def handle_callback(callback_query: CallbackQuery):
 
 
 
-
+    # ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
     if data == 'view_profile':
         user_sub = time_sub_day(db.get_time_sub(callback_query.from_user.id))
         if user_sub == False:
@@ -386,7 +385,7 @@ async def handle_callback(callback_query: CallbackQuery):
 
 
 
-
+    # ПОПОЛНЕНИЕ КОШЕЛЬКА
     if data == 'pay_the_bot':
         await callback_query.message.answer(f'🤖 Наш тариф:\n1 месяц = 500₽\n6 месяцев = 2500₽\n1 год = 5500₽\n\n<b>❗ Чтобы пополнить доступ нужно пополнить кошелек. Вы можете вводить промокоды от разработчика.</b>\n\n💵 Кошелек: <b>{db.get_user_wallet(callback_query.from_user.id)}₽</b>\n\nВыберите тариф:', reply_markup=payment_keyboard, parse_mode='html')
 
@@ -479,11 +478,6 @@ def get_ms():
     msLine = result[-1].strip()
     msLine2 = msLine.split(' = ')[-1]
     return str(msLine2)[0:3]
-
-
-# run_request()
-# enable_vpn(proxy_host, proxy_port)
-# run_request()
 
 
 if __name__ == '__main__':
