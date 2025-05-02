@@ -25,13 +25,13 @@ import time
 import datetime
 
 
-bot = Bot('7934741203:AAHFESqtDITl5uXL3iLxztRCAomofQoW16Y')
+bot = Bot('YOUR BOT TOKEN')
 dp = Dispatcher(storage=MemoryStorage())
 proxy_host = 'TEST PROXY HOST'
 proxy_port = 'TEST PROXY PORT'
 db = Database('database.db')
 
-BOT_NICKNAME = 'pump_vpn_bot'
+BOT_NICKNAME = 'YOUR BOT NICKNAME'
 cost = ''
 WALLET = 'YOUR CRYPTO WALLET'
 NETWORK = ''
