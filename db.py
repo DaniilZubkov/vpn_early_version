@@ -3,12 +3,30 @@ import time
 
 db = sqlite3.connect('database.db')
 
-
+# БД ЧАСТЬ
 class Database:
     def __init__(self, db_file):
         self.connection = sqlite3.connect(db_file)
         self.cursor = self.connection.cursor()
 
+    def create_tables(self):
+        cursor = self.connection.cursor()
+
+        # Создаем таблицу users
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY NOT NULL,
+        user_id INTEGER NOT NULL,
+        nickname TEXT,
+        time_sub NOT NULL DEFAULT 0,
+        signup VARCHAR(60) DEFAULT 'setnickname',
+        referrer_id INTEGER,
+        referal_count INTEGER NOT NULL DEFAULT 0,
+        user_wallet INTEGER NOT NULL DEFAULT 0,
+        wallet TEXT,
+        network TEXT,
+        rent INTEGER)
+        ''')
 
     def add_user(self, user_id, referrer_id=None):
         with self.connection:
@@ -105,3 +123,38 @@ class Database:
             current_wallet = self.get_user_wallet(user_id)
             new_current_wallet = float(current_wallet) - county
             return self.cursor.execute("UPDATE users SET user_wallet=? WHERE user_id=?", (new_current_wallet, user_id,))
+
+
+
+    def set_wallet(self, user_id, wallet):
+        with self.connection:
+            return self.cursor.execute("UPDATE users SET wallet=? WHERE user_id=?", (wallet, user_id,))
+
+    def get_wallet(self, user_id):
+        with self.connection:
+            result = self.cursor.execute("SELECT wallet FROM users WHERE user_id=?", (user_id,)).fetchall()
+            for row in result:
+                wallet = str(row[0])
+            return wallet
+
+    def set_network(self, user_id, network):
+        with self.connection:
+            return self.cursor.execute("UPDATE users SET network=? WHERE user_id=?", (network, user_id,))
+
+    def get_network(self, user_id):
+        with self.connection:
+            result = self.cursor.execute("SELECT network FROM users WHERE user_id=?", (user_id,)).fetchall()
+            for row in result:
+                network = str(row[0])
+            return network
+
+    def set_rent(self, user_id, rent):
+        with self.connection:
+            return self.cursor.execute("UPDATE users SET rent=? WHERE user_id=?", (rent, user_id,))
+
+    def get_rent(self, user_id):
+        with self.connection:
+            result = self.cursor.execute("SELECT rent FROM users WHERE user_id=?", (user_id,)).fetchall()
+            for row in result:
+                rent = str(row[0])
+            return rent
