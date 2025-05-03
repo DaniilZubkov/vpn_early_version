@@ -9,8 +9,6 @@ from aiogram.types import FSInputFile, InlineKeyboardMarkup, InlineKeyboardButto
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.state import StatesGroup, State
-import time
-import json
 from aiogram.enums import ParseMode
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -32,12 +30,7 @@ proxy_port = 'TEST PROXY PORT'
 db = Database('database.db')
 
 BOT_NICKNAME = 'YOUR BOT NICKNAME'
-cost = ''
-WALLET = 'YOUR CRYPTO WALLET'
-NETWORK = ''
-user_count = ''
-GROUP_CHAT_ID = -1002192140565
-sum = ''
+GROUP_CHAT_ID = 'your chat id'
 
 
 
@@ -264,68 +257,6 @@ async def start(message: Message):
 
 
 
-# # ЗАПРОС НА СУММУ ПОПОЛНЕНИЯ КОШЕЛЬКА
-# @dp.message(content_types=['text'])
-# async def loot_for_wallet(message: Message):
-#     global cost, user_count, sum
-#     if message.text.isdigit():
-#         sum = int(message.text)
-#         user_count = calculate_sum_from_rubs_to_dollars(sum)
-#         await message.answer(f'🤖 ***Переведите сумму ниже на адрес кошелька:***\n\n'
-#                              f'`{WALLET}`\n\n'
-#                              f'❗ ***Потом пришлите пришлите скриншот оплаты. В описании под скриншотом нужно вставить хэш транзакции, иначе бот не засчитает оплату. (сеть {NETWORK})***\n\n'
-#                              f'💵 К оплате: ***{user_count} USDT***', parse_mode='MARKDOWN')
-
-
-
-# @dp.message(regexp='^0x[a-fA-F0-9]{64}$', content_types=['photo'])
-# async def handle_transaction_eth(message: Message):
-#     global succes_or_invalid, user_count
-#     print(user_count)
-#     user_id = message.from_user.id
-#     succes_or_invalid = InlineKeyboardMarkup(inline_keyboard=[(
-#         InlineKeyboardButton(text='✅Успешно', callback_data=f'success:{user_id}'),
-#         InlineKeyboardButton(text='❌Не успешно', callback_data=f'invalid:{user_id}')
-#     )])
-#     pay_k = succes_or_invalid
-#     await message.forward(chat_id=GROUP_CHAT_ID)
-#     await message.answer('✅Отлично! <b>Ваша заявка будет одобрена от 15 минут до 24 часов</b>\n\n'
-#                          '<b>Если</b> будут вопросы обращайтесь в поддержку: @pump_supporting_bot', parse_mode='html')
-#     await bot.send_message(GROUP_CHAT_ID, f'ETH {user_count} USDT', reply_markup=pay_k)
-#
-#
-# @dp.message_handler(regexp='[a-fA-F0-9]{64}$', content_types=['photo'])
-# async def handle_transaction_tron(message: Message):
-#     global succes_or_invalid, user_count
-#     print(user_count)
-#     user_id = message.from_user.id
-#     succes_or_invalid = InlineKeyboardMarkup(inline_keyboard=[(
-#         InlineKeyboardButton(text='✅Успешно', callback_data=f'success:{user_id}'),
-#         InlineKeyboardButton(text='❌Не успешно', callback_data=f'invalid:{user_id}')
-#     )])
-#     pay_k = succes_or_invalid
-#     await message.forward(chat_id=GROUP_CHAT_ID)
-#     await message.answer('✅Отлично! <b>Ваша заявка будет одобрена от 15 минут до 24 часов</b>\n\n'
-#                          '<b>Если</b> будут вопросы обращайтесь в поддержку: @pump_supporting_bot', parse_mode='html')
-#     await bot.send_message(GROUP_CHAT_ID, f'TRX {user_count} USDT', reply_markup=pay_k)
-#
-#
-# @dp.message_handler(regexp='[a-fA-F0-9]{66}$', content_types=['photo'])
-# async def handle_transaction_ton(message: Message):
-#     global succes_or_invalid, user_count
-#     print(user_count)
-#     user_id = message.from_user.id
-#     succes_or_invalid = InlineKeyboardMarkup(inline_keyboard=[(
-#         InlineKeyboardButton(text='✅Успешно', callback_data=f'success:{user_id}'),
-#         InlineKeyboardButton(text='❌Не успешно', callback_data=f'invalid:{user_id}')
-#     )])
-#     pay_k = succes_or_invalid
-#     await message.forward(chat_id=GROUP_CHAT_ID)
-#     await message.answer('✅Отлично! <b>Ваша заявка будет одобрена от 15 минут до 24 часов</b>\n\n'
-#                          '<b>Если</b> будут вопросы обращайтесь в поддержку: @pump_supporting_bot', parse_mode='html')
-#     await bot.send_message(GROUP_CHAT_ID, f'TON {user_count}', reply_markup=pay_k)
-
-
 
 
 
@@ -349,10 +280,8 @@ async def handle_callback(callback_query: CallbackQuery, state: FSMContext):
         action, user_id = callback_query.data.split(':')
         user_id = int(user_id)
         rent = float(db.get_rent(user_id))
-        print(rent)
         if action == 'success':
             new_rent = calculate_sum_from_dollars_to_rubs(rent)
-            print(new_rent)
             db.set_user_wallet_make(user_id, new_rent)
             await bot.send_photo(photo=FSInputFile(message_photo_path), chat_id=user_id,
                                      caption=f'✅ <b>Пополнение на кошелек прошло успешно!</b>\n\n'
@@ -383,6 +312,8 @@ async def handle_callback(callback_query: CallbackQuery, state: FSMContext):
                 button = InlineKeyboardButton(text=i, callback_data=i)
                 server_keyboard.add(button)
 
+            server_keyboard.add(InlineKeyboardButton(text='🔙 Назад', callback_data='back_to_menu'))
+            server_keyboard.adjust(1)
             await callback_query.message.answer_photo(
                 photo=FSInputFile(lighting_photo_path), caption=f'{callback_query.from_user.first_name}, ***выбери сервер для подключения:***', reply_markup=server_keyboard.as_markup(), parse_mode='MARKDOWN')
 
@@ -392,6 +323,8 @@ async def handle_callback(callback_query: CallbackQuery, state: FSMContext):
                 button = InlineKeyboardButton(text=i, callback_data=i)
                 server_keyboard.add(button)
 
+            server_keyboard.add(InlineKeyboardButton(text='🔙 Назад', callback_data='back_to_menu'))
+            server_keyboard.adjust(1)
             await callback_query.message.answer_photo(
                 photo=FSInputFile(lighting_photo_path),
                 caption=f'{callback_query.from_user.first_name}, ***выбери сервер для подключения:***',
@@ -472,7 +405,7 @@ async def handle_callback(callback_query: CallbackQuery, state: FSMContext):
                                                           f'💳 ***Баланс:***\n'
                                                           f'↳ 💰 Кошелек: ***{db.get_user_wallet(callback_query.from_user.id)}₽***\n\n'
                                                           f'👤 ***Реферальная ссылка:***\n'
-                                                          f' ↳ ___За каждого приглашенного человека в бота вы получите 10 Дней Доступа!___\n\n'
+                                                          f' ↳ ___За каждого приглашенного человека в бота вы получите 10₽ На кошелек!___\n\n'
                                                           f'🚀 Ваша реферальная ссылка: [Ссылка](https://t.me/{BOT_NICKNAME}?start={callback_query.from_user.id})',
                                                   parse_mode='MARKDOWN', reply_markup=payment_keyboard1())
 
@@ -484,9 +417,9 @@ async def handle_callback(callback_query: CallbackQuery, state: FSMContext):
     if data == 'referal_system':
         await callback_query.message.answer_photo(photo=FSInputFile(referal_photo_path),
                                                   caption=f'🧑‍🧑‍🧒 <b>Партнёры</b> — это люди, которые перешли по вашей ссылке и начали пользоваться данным ботом.\n\n'
-                                                          f'🤖 <b>За каждого приглашенного человека в бота вы получите 10 Дней доступа!</b>\n\n🚀 <b>Ваша реферальная ссылка:</b> https://t.me/{BOT_NICKNAME}?start={callback_query.from_user.id}\n\n'
+                                                          f'🤖 <b>За каждого приглашенного человека в бота вы получите 10₽ На кошелек!</b>\n\n🚀 <b>Ваша реферальная ссылка:</b> https://t.me/{BOT_NICKNAME}?start={callback_query.from_user.id}\n\n'
                                                           f'👥 <b>Вы пригласили партнеров:</b> {db.get_count_refers(callback_query.from_user.id)}\n\n'
-                                                          f'<i>Приводи друзей - зарабатывайте вместе!</i>',
+                                                          f'<i>Приводи друзей - подключайтесь вместе вместе!</i>',
                                                   parse_mode='html', reply_markup=back_command_keyboard())
 
 
@@ -578,26 +511,6 @@ async def handle_callback(callback_query: CallbackQuery, state: FSMContext):
                                                               caption='🤖 <b>Выбери сеть для оплаты USDT:</b>',
                                                               parse_mode='html',
                                                               reply_markup=network1())
-
-
-
-    # if data == 'TON':
-    #     NETWORK = 'TON'
-    #     WALLET = 'UQCZWX_JeVoi9ajcpXKAp1F8soOH2YIv6HitZeGUE16gGVfk'
-    #     await callback_query.message.answer(
-    #        '🤖 <b>Введите сумму на которую вы хотите пополнить на кошелек (в рублях):</b>', parse_mode='html')
-    #
-    # if data == 'TRC':
-    #     NETWORK = 'TRC'
-    #     WALLET = 'TWBv2DH5cpHP8UgRj9wdCcr2rWkJTgGJoo'
-    #     await callback_query.message.answer(
-    #         '🤖 <b>Введите сумму на которую вы хотите пополнить на кошелек (в рублях):</b>', parse_mode='html')
-    #
-    # if data == 'ERC':
-    #     NETWORK = 'ERC'
-    #     WALLET = '0x4B908f33111e968970bD4c5b1f6CE4014ad4F92E'
-    #     await callback_query.message.answer(
-    #         '🤖 <b>Введите сумму на которую вы хотите пополнить на кошелек (в рублях):</b>', parse_mode='html')
 
 
 
@@ -702,184 +615,7 @@ async def transaction_handle(message: types.Message, state: FSMContext):
             return
 
     except Exception as e:
-        print(e)
-
-
-
-
-
-
-# # VIEW PROFILE
-#     if callback_query.data == 'my_acc':
-#         user_sub = time_sub_day(db.get_time_sub(callback_query.from_user.id))
-#         if user_sub == False:
-#             user_sub = '❌ ***Отсутствует***'
-#         user_sub = f'***{user_sub}***'
-#
-#         profile_photo_path = 'fotos/profile.jpg'
-#         await callback_query.message.answer_photo(photo=FSInputFile(profile_photo_path), caption=f'👨‍💻 ***Ваш кабинет:***\n'
-#                                                                                         f'• Ваш никнейм: {callback_query.from_user.first_name}\n'
-#                                                                                         f'• Ваш ID: {callback_query.message.from_user.id}\n\n'
-#                                                                                         f'📊 ***Статистика:***\n'
-#                                                                                         f'↳ 👤 Рефералов: ***{db.get_count_refers(callback_query.from_user.id)}***\n'
-#                                                                                         f'↳ 🔋 Подписка: ***{user_sub}***\n\n'
-#                                                                                         f'💳 ***Баланс:***\n'
-#                                                                                         f'↳ 💰 Кошелек: ***{db.get_user_wallet(callback_query.from_user.id)}***\n\n'
-#                                                                                         f'👤 ***Реферальная ссылка:***\n'
-#                                                                                         f' ↳ ___За каждого приглашенного человека в бота вы получите 10 Дней Доступа!___\n\n'
-#                                                                                         f'🚀 Ваша реферальная ссылка: [Ссылка](https://t.me/{BOT_NICKNAME}?start={callback_query.from_user.id})', parse_mode='MARKDOWN', reply_markup=payment_keyboard1())
-#
-#
-#     if callback_query.data == 'partners_refs':
-#         refferal_photo_path = 'fotos/invite.jpg'
-#         await callback_query.message.answer_photo(photo=FSInputFile(refferal_photo_path),
-#                                                   caption=f'🧑‍🧑‍🧒 <b>Партнёры</b> — это люди, которые перешли по вашей ссылке и начали пользоваться данным ботом.\n\n'
-#                                                           f'🤖 <b>За каждого приглашенного человека в бота вы получите 10 Дней доступа!</b>\n\n🚀 <b>Ваша реферальная ссылка:</b> https://t.me/{BOT_NICKNAME}?start={callback_query.from_user.id}\n\n'
-#                                                           f'👥 <b>Вы пригласили партнеров:</b> {db.get_count_refers(callback_query.from_user.id)}\n\n'
-#                                                           f'<i>Приводи друзей - зарабатывайте вместе!</i>',
-#                                                   parse_mode='html', reply_markup=back_command_keyboard())
-#
-#
-#     # REFERAL SISTEM
-#     # ПОПОЛНЕНИЕ КОШЕЛЬКА
-#     if callback_query.data == 'pay_the_call':
-#         bank_photo_path = 'fotos/bank.jpg'
-#         await callback_query.message.answer_photo(photo=FSInputFile(bank_photo_path),
-#                                                       caption=f'🤖 Наш тариф:\n1 месяц = 1 USDT\n6 месяцев = 5 USDT\n1 год = 10 USDT\n\n<b>❗ Чтобы пополнить доступ нужно пополнить кошелек. Вы можете вводить промокоды от разработчика.</b>\n\n💵 Кошелек: <b>{db.get_user_wallet(callback_query.from_user.id)} USDT</b>\n\n<i>Выберите тариф:</i>',
-#                                                       reply_markup=payment_keyboard(), parse_mode='html')
-#
-#     if callback_query.data == 'month':
-#             success_photo_path = 'fotos/success.jpg'
-#             fail_photo_path = 'fotos/error.jpg'
-#             if float(db.get_user_wallet(callback_query.from_user.id)) >= 1:
-#                 db.set_user_wallet_take(callback_query.from_user.id, 1)
-#                 if db.get_sub_status(callback_query.from_user.id):
-#                     time_sub = int(time.time() + days_to_seconds(30)) - int(time.time())
-#                     db.set_time_sub(callback_query.from_user.id, time_sub)
-#                     await bot.send_photo(photo=FSInputFile(success_photo_path), chat_id=callback_query.from_user.id,
-#                                          caption='✅ <b>Вы успешно преобрели доступ на 1 месяц</b>\n\n'
-#                                                  '<i>🎉 Поздравляем!</i>', parse_mode='html', reply_markup=back_command_keyboard())
-#                 else:
-#                     time_sub = int(time.time() + days_to_seconds(30))
-#                     db.set_time_sub(callback_query.from_user.id, time_sub)
-#                     await bot.send_photo(photo=FSInputFile(success_photo_path), chat_id=callback_query.from_user.id,
-#                                          caption='✅ <b>Вы успешно преобрели доступ на 1 месяц</b>\n\n'
-#                                                  '<i>🎉 Поздравляем!</i>', parse_mode='html', reply_markup=back_command_keyboard())
-#             else:
-#                 await callback_query.message.answer_photo(photo=FSInputFile(success_photo_path),
-#                                                           caption=f'❌ <b>Недостаточно средств на кошельке!</b>\n\n'
-#                                                                   f'<i>👇 Пополните кошелек по кнопке ниже чтобы оплатить доступ!</i>',
-#                                                           parse_mode='html',
-#                                                           reply_markup=payment_keyboard1())
-#
-#     if callback_query.data == 'halfyear':
-#             success_photo_path = 'fotos/success.jpg'
-#             fail_photo_path = 'fotos/error.jpg'
-#             if float(db.get_user_wallet(callback_query.from_user.id)) >= 5:
-#                 db.set_user_wallet_take(callback_query.from_user.id, 5)
-#                 if db.get_sub_status(callback_query.from_user.id):
-#                     time_sub = int(time.time() + days_to_seconds(180)) - int(time.time())
-#                     db.set_time_sub(callback_query.from_user.id, time_sub)
-#                     await bot.send_photo(photo=FSInputFile(success_photo_path), chat_id=callback_query.from_user.id,
-#                                          caption='✅ <b>Вы успешно преобрели доступ на 6 месяцев</b>\n\n'
-#                                                  '<i>🎉 Поздравляем!</i>', parse_mode='html', reply_markup=back_command_keyboard())
-#                 else:
-#                     time_sub = int(time.time() + days_to_seconds(180))
-#                     db.set_time_sub(callback_query.from_user.id, time_sub)
-#                     await bot.send_photo(photo=FSInputFile(success_photo_path), chat_id=callback_query.from_user.id,
-#                                          caption='✅ <b>Вы успешно преобрели доступ на 6 месяцев</b>\n\n'
-#                                                  '<i>🎉 Поздравляем!</i>', parse_mode='html', reply_markup=back_command_keyboard())
-#             else:
-#                 await callback_query.message.answer_photo(photo=FSInputFile(fail_photo_path),
-#                                                           caption=f'❌ <b>Недостаточно средств на кошельке!</b>\n\n'
-#                                                                   f'<i>👇 Пополните кошелек по кнопке ниже чтобы оплатить доступ!</i>',
-#                                                           parse_mode='html', reply_markup=payment_keyboard1())
-#
-#     if callback_query.data == 'year':
-#             success_photo_path = 'fotos/success.jpg'
-#             fail_photo_path = 'fotos/error.jpg'
-#             if float(db.get_user_wallet(callback_query.from_user.id)) >= 10:
-#                 db.set_user_wallet_take(callback_query.from_user.id, 10)
-#                 if db.get_sub_status(callback_query.from_user.id):
-#                     time_sub = int(time.time() + days_to_seconds(365)) - int(time.time())
-#                     db.set_time_sub(callback_query.from_user.id, time_sub)
-#                     await bot.send_photo(photo=FSInputFile(success_photo_path), chat_id=callback_query.from_user.id,
-#                                          caption='✅ <b>Вы успешно преобрели доступ на 1 год</b>\n\n'
-#                                                  '<i>🎉 Поздравляем!</i>', parse_mode='html', reply_markup=back_command_keyboard())
-#                 else:
-#                     time_sub = int(time.time() + days_to_seconds(365))
-#                     db.set_time_sub(callback_query.from_user.id, time_sub)
-#                     await bot.send_photo(photo=FSInputFile(success_photo_path), chat_id=callback_query.from_user.id,
-#                                          caption='✅ <b>Вы успешно преобрели доступ на 1 год</b>\n\n'
-#                                                  '<i>🎉 Поздравляем!</i>', parse_mode='html', reply_markup=back_command_keyboard())
-#             else:
-#                 await callback_query.message.answer_photo(photo=FSInputFile(fail_photo_path),
-#                                                           caption=f'❌ <b>Недостаточно средств на кошельке!</b>\n\n'
-#                                                                   f'<i>👇 Пополните кошелек по кнопке ниже чтобы оплатить доступ!</i>',
-#                                                           parse_mode='html', reply_markup=payment_keyboard1())
-#
-#     if callback_query.data == 'bye_loot':
-#             card_photo_path = 'fotos/bank_cards.jpg'
-#             await callback_query.message.answer_photo(photo=FSInputFile(card_photo_path),
-#                                                       caption='🤖 <b>Выбери сеть для оплаты USDT:</b>',
-#                                                       parse_mode='html',
-#                                                       reply_markup=network_keyboard())
-#
-#     if callback_query.data == 'TON':
-#             await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
-#             card_photo_path = 'fotos/bank_cards.jpg'
-#             db.set_wallet(callback_query.from_user.id, 'UQCZWX_JeVoi9ajcpXKAp1F8soOH2YIv6HitZeGUE16gGVfk')
-#             db.set_network(callback_query.from_user.id, 'TON')
-#             await state.set_state(Renting.rent_time)
-#             await callback_query.message.answer_photo(photo=FSInputFile(card_photo_path),
-#                                                       caption='🤖 <b>Введите сумму которую вы хотите пополнить на кошелек (в USDT, без точек и запятых):</b>',
-#                                                       parse_mode='html', reply_markup=back_command_keyboard())
-#
-#     if callback_query.data == 'TRC':
-#             await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
-#             card_photo_path = 'fotos/bank_cards.jpg'
-#             db.set_wallet(callback_query.from_user.id, 'TWBv2DH5cpHP8UgRj9wdCcr2rWkJTgGJoo')
-#             db.set_network(callback_query.from_user.id, 'TRC')
-#             await state.set_state(Renting.rent_time)
-#             await callback_query.message.answer_photo(photo=FSInputFile(card_photo_path),
-#                                                       caption='🤖 <b>Введите сумму которую вы хотите пополнить на кошелек (в USDT, без точек и запятых):</b>',
-#                                                       parse_mode='html', reply_markup=back_command_keyboard())
-#
-#     if callback_query.data == 'ERC':
-#             await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
-#             card_photo_path = 'fotos/bank_cards.jpg'
-#             db.set_wallet(callback_query.from_user.id, '0x4B908f33111e968970bD4c5b1f6CE4014ad4F92E')
-#             db.set_network(callback_query.from_user.id, 'ERC')
-#             await state.set_state(Renting.rent_time)
-#             await callback_query.message.answer_photo(photo=FSInputFile(card_photo_path),
-#                                                       caption='🤖 <b>Введите сумму которую вы хотите пополнить на кошелек (в USDT, без точек и запятых):</b>',
-#                                                       parse_mode='html', reply_markup=back_command_keyboard())
-#
-#
-#
-#     # проверка оплаты и подтверждение
-#     try:
-#             action, user_id = callback_query.data.split(':')
-#             user_id = int(user_id)
-#             rent = float(db.get_rent(user_id))
-#             message_photo_path = 'fotos/message.jpg'
-#             if action == 'success':
-#                 db.set_user_wallet_make(user_id, rent)
-#                 await bot.send_photo(photo=FSInputFile(message_photo_path), chat_id=user_id,
-#                                      caption=f'✅ <b>Пополнение на кошелек прошло успешно!</b>\n\n'
-#                                              f'💵 Кошелек: <b>{db.get_user_wallet(user_id)} USDT</b>', parse_mode='html',
-#                                      reply_markup=back_command_keyboard())
-#
-#             if action == 'invalid':
-#                 error_photo_path = 'fotos/error.jpg'
-#                 await bot.answer_callback_query(callback_query.id)
-#                 await bot.send_photo(photo=FSInputFile(error_photo_path), chat_id=user_id,
-#                                      caption='❌ <b>Похоже что-то пошло не так. Возможно возникла проблема с обработкой данных.</b>\n\n'
-#                                              '<i>Если вы уверены, что все данные верны обратитесь в поддержку: @pump_supporting_bot</i>',
-#                                      parse_mode='html', reply_markup=back_command_keyboard())
-#     except Exception:
-#         pass
-
+        pass
 
 
 
@@ -902,6 +638,7 @@ def disable_vpn():
 def run_request():
     response = requests.get("https://httpbin.org/ip", timeout=10)
     print(response.json())
+
 
 def get_ms():
     ping = os.popen('ping www.google.com -n 1')
